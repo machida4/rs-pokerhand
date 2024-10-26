@@ -41,23 +41,23 @@ impl Hand {
         sorted_hand.sort();
         let sorted_hand = SortedHand { cards: sorted_hand };
 
-        if let Some(hand_type) = sorted_hand.is_royal_flush() {
+        if let Some(hand_type) = sorted_hand.detect_royal_flush() {
             hand_type
-        } else if let Some(hand_type) = sorted_hand.is_straight_flush() {
+        } else if let Some(hand_type) = sorted_hand.detect_straight_flush() {
             hand_type
-        } else if let Some(hand_type) = sorted_hand.is_four_of_a_kind() {
+        } else if let Some(hand_type) = sorted_hand.detect_four_of_a_kind() {
             hand_type
-        } else if let Some(hand_type) = sorted_hand.is_full_house() {
+        } else if let Some(hand_type) = sorted_hand.detect_full_house() {
             hand_type
-        } else if let Some(hand_type) = sorted_hand.is_flush() {
+        } else if let Some(hand_type) = sorted_hand.detect_flush() {
             hand_type
-        } else if let Some(hand_type) = sorted_hand.is_straight() {
+        } else if let Some(hand_type) = sorted_hand.detect_straight() {
             HandType::Straight(hand_type)
-        } else if let Some(hand_type) = sorted_hand.is_three_of_a_kind() {
+        } else if let Some(hand_type) = sorted_hand.detect_three_of_a_kind() {
             hand_type
-        } else if let Some(hand_type) = sorted_hand.is_two_pair() {
+        } else if let Some(hand_type) = sorted_hand.detect_two_pair() {
             hand_type
-        } else if let Some(hand_type) = sorted_hand.is_pair() {
+        } else if let Some(hand_type) = sorted_hand.detect_pair() {
             hand_type
         } else {
             HandType::HighCard
@@ -65,15 +65,15 @@ impl Hand {
     }
 }
 
-pub struct SortedHand {
+struct SortedHand {
     cards: Vec<Card>,
 }
 
 impl SortedHand {
-    pub fn is_royal_flush(&self) -> Option<HandType> {
+    pub fn detect_royal_flush(&self) -> Option<HandType> {
         match &self.cards[..] {
             [Card(Rank::Ten, _), Card(Rank::Jack, _), Card(Rank::Queen, _), Card(Rank::King, _), Card(Rank::Ace, _)]
-                if self.is_flush().is_some() =>
+                if self.detect_flush().is_some() =>
             {
                 Some(HandType::RoyalFlush)
             }
@@ -81,15 +81,15 @@ impl SortedHand {
         }
     }
 
-    pub fn is_straight_flush(&self) -> Option<HandType> {
-        if self.is_flush().is_some() && self.is_straight().is_some() {
+    pub fn detect_straight_flush(&self) -> Option<HandType> {
+        if self.detect_flush().is_some() && self.detect_straight().is_some() {
             Some(HandType::StraightFlush(StraightType::Other))
         } else {
             None
         }
     }
 
-    pub fn is_four_of_a_kind(&self) -> Option<HandType> {
+    pub fn detect_four_of_a_kind(&self) -> Option<HandType> {
         match &self.cards[..] {
             [Card(r1, _), Card(r2, _), Card(r3, _), Card(r4, _), _]
                 if r1 == r2 && r2 == r3 && r3 == r4 =>
@@ -105,7 +105,7 @@ impl SortedHand {
         }
     }
 
-    pub fn is_full_house(&self) -> Option<HandType> {
+    pub fn detect_full_house(&self) -> Option<HandType> {
         match &self.cards[..] {
             [Card(r1, _), Card(r2, _), Card(r3, _), Card(r4, _), Card(r5, _)]
                 if (r1 == r2 && r2 == r3) && r4 == r5 =>
@@ -121,7 +121,7 @@ impl SortedHand {
         }
     }
 
-    pub fn is_flush(&self) -> Option<HandType> {
+    pub fn detect_flush(&self) -> Option<HandType> {
         if let [Card(_, s1), Card(_, s2), Card(_, s3), Card(_, s4), Card(_, s5)] = &self.cards[..] {
             if [s1, s2, s3, s4, s5].iter().all(|&s| *s == *s1) {
                 return Some(HandType::Flush);
@@ -130,7 +130,7 @@ impl SortedHand {
         None
     }
 
-    pub fn is_straight(&self) -> Option<StraightType> {
+    pub fn detect_straight(&self) -> Option<StraightType> {
         match &self.cards[..] {
             [Card(Rank::Two, _), Card(Rank::Three, _), Card(Rank::Four, _), Card(Rank::Five, _), Card(Rank::Ace, _)] => {
                 Some(StraightType::AceLow)
@@ -147,7 +147,7 @@ impl SortedHand {
         }
     }
 
-    pub fn is_three_of_a_kind(&self) -> Option<HandType> {
+    pub fn detect_three_of_a_kind(&self) -> Option<HandType> {
         match &self.cards[..] {
             [Card(r1, _), Card(r2, _), Card(r3, _), _, _] if r1 == r2 && r2 == r3 => {
                 Some(HandType::ThreeOfAKind)
@@ -162,7 +162,7 @@ impl SortedHand {
         }
     }
 
-    pub fn is_two_pair(&self) -> Option<HandType> {
+    pub fn detect_two_pair(&self) -> Option<HandType> {
         match &self.cards[..] {
             [Card(r1, _), Card(r2, _), Card(r3, _), Card(r4, _), _] if r1 == r2 && r3 == r4 => {
                 Some(HandType::TwoPair)
@@ -177,7 +177,7 @@ impl SortedHand {
         }
     }
 
-    pub fn is_pair(&self) -> Option<HandType> {
+    pub fn detect_pair(&self) -> Option<HandType> {
         match &self.cards[..] {
             [Card(r1, _), Card(r2, _), _, _, _] if r1 == r2 => Some(HandType::Pair),
             [_, Card(r2, _), Card(r3, _), _, _] if r2 == r3 => Some(HandType::Pair),
